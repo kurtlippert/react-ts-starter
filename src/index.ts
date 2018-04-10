@@ -5,7 +5,7 @@
 import * as React from 'react'
 const r = React.createElement
 import { render } from 'react-dom'
-import { br, div, hr, li, tbody, td, th, thead, tr, ul, img } from 'react-dom-factories'
+import { br, div, hr, img, li, tbody, td, th, thead, tr, ul } from 'react-dom-factories'
 import { BrowserRouter as Router, NavLink } from 'react-router-dom'
 
 // redux
