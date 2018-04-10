@@ -1,14 +1,11 @@
-import { CheckerPlugin } from 'awesome-typescript-loader'
 import * as CleanDistPlugin from 'clean-webpack-plugin'
-import * as ExtractTextPlugin from 'extract-text-webpack-plugin'
 import * as HtmlWebpackPlugin from 'html-webpack-plugin'
-import * as OptimizeCSSPlugin from 'optimize-css-assets-webpack-plugin'
 import * as path from 'path'
-import * as PurifyCSSPlugin from 'purifycss-webpack'
 import * as webpack from 'webpack'
 import * as merge from 'webpack-merge'
 
 const entryPath = path.join(__dirname, 'src/index.ts')
+const vendor = [ 'react', 'react-dom', 'react-dom-factories' ]
 const outputPath = path.join(__dirname, 'dist')
 
 interface Config extends webpack.Configuration {
@@ -38,7 +35,7 @@ const commonConfig: Config = {
       },
       {
         test: /\.ts$/,
-        use: 'awesome-typescript-loader',
+        use: 'ts-loader',
       },
     ],
   },
@@ -48,27 +45,16 @@ const commonConfig: Config = {
   output: {
     filename: outputFilename,
     path: outputPath,
-    publicPath: TARGET_ENV === 'development' ? 'http://localhost:8080/' : '/kurt-web/',
+    publicPath: TARGET_ENV === 'development' ? 'http://localhost:8080/' : '/',
   },
   plugins: [
     new HtmlWebpackPlugin({
       inject: 'body',
-      // script:
-      //   `<script crossorigin src="https://unpkg.com/react@16/umd/react.${TARGET_ENV}.js"></script>
-      //    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.${TARGET_ENV}.js"></script>`,
       template: 'template.html',
-      title: 'Kurt Lippert',
+      title: '',
     }),
-    new CheckerPlugin(),
   ],
   resolve: {
-    alias: {
-      '@Body': path.resolve(__dirname, 'src/Body'),
-      '@Header': path.resolve(__dirname, 'src/Header'),
-      '@Main': path.resolve(__dirname, 'src'),
-      '@libs': path.resolve(__dirname, 'libs'),
-      '@redux': path.resolve(__dirname, 'redux'),
-    },
     extensions: ['.js', '.ts'],
   },
 }
@@ -105,6 +91,7 @@ if (TARGET_ENV === 'development') {
       'webpack-dev-server/client?http://localhost:8080',
       entryPath,
     ],
+    mode: 'development',
     module: {
       rules: [
         {
@@ -128,44 +115,29 @@ if (TARGET_ENV === 'production') {
   console.log('Building for prod...')
 
   module.exports = merge(commonConfig, {
-    entry: {
-      vendor: ['react', 'react-dom', 'react-dom-factories'],
-    },
+    mode: 'production',
     module: {
       rules: [
-        {
-          test: /\.css$/i,
-          use: ExtractTextPlugin.extract({
-            fallbackLoader: 'style-loader',
-            loader: 'css-loader',
-          }),
-        },
         {
           test: /\.(woff|woff2|ttf|eot)$/,
           use: 'url-loader?limit=50000',
         },
       ],
     },
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          commons: {
+            chunks: 'all',
+            name: 'vendors',
+            test: /[\\/]node_modules[\\/]/,
+          },
+        },
+      },
+    },
     plugins: [
       new CleanDistPlugin('dist', {
         root: __dirname,
-      }),
-      new ExtractTextPlugin(vendorCSSName),
-      new webpack.optimize.CommonsChunkPlugin({
-        name: 'vendor',
-      }),
-      // minify & mangle JS/CSS
-      new webpack.optimize.UglifyJsPlugin({
-          compress: { warnings: false },
-          // minimize: true,
-          // mangle:  true
-      }),
-      new PurifyCSSPlugin({
-        basePath: outputPath,
-        paths: ['index.html'],
-      }),
-      new OptimizeCSSPlugin({
-        cssProcessorOptions: { discardComments: { removeAll: true }},
       }),
     ],
   })

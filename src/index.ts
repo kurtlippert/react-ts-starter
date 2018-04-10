@@ -5,13 +5,10 @@
 import * as React from 'react'
 const r = React.createElement
 import { render } from 'react-dom'
-import { br, div, hr, li, tbody, td, th, thead, tr, ul } from 'react-dom-factories'
-// import { BrowserRouter as Router, NavLink, Route, Switch, withRouter } from 'react-router-dom'
-// import { BrowserRouter as Router, NavLink, Route, Switch } from 'react-router-dom'
+import { br, div, hr, li, tbody, td, th, thead, tr, ul, img } from 'react-dom-factories'
 import { BrowserRouter as Router, NavLink } from 'react-router-dom'
 
 // redux
-// import { connect, Provider } from 'react-redux'
 import { connect, Provider } from 'react-redux'
 import { applyMiddleware, createStore, Store} from 'redux'
 import { createEpicMiddleware, Epic } from 'redux-observable'
@@ -39,11 +36,6 @@ interface User {
 
 interface State {
   users: User[]
-  // location: 'HOME' | 'ABOUT' | 'TOPICS'
-  // items: any
-  // firstName: string,
-  // lastName: string,
-  // avatar: string,
 }
 
 // action
@@ -122,7 +114,9 @@ const _about: React.SFC<{ state: State }> = ({ state }) =>
             td({}, index),
             td({}, user.first_name),
             td({}, user.last_name),
-            td({}, user.avatar),
+            td({},
+              img({ src: user.avatar }),
+            ),
           ),
         ),
       ),
