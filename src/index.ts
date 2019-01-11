@@ -16,7 +16,7 @@ import { mergeMap, map, catchError } from 'rxjs/operators'
 import { ajax } from 'rxjs/ajax'
 
 // typestyle
-import { style } from 'typestyle'
+// import { style } from 'typestyle'
 
 // react-bootstrap
 import { Table } from 'react-bootstrap'
@@ -150,7 +150,7 @@ interface RootProps {
 const Root: React.SFC<RootProps> = ({ store }) =>
   r(Provider, { store },
     r(Router, {},
-      div({ className: style({ marginTop: '10px' }) },
+      div({ className: 'container mt-3' },
         ul({},
           li({}, r(NavLink, { to: '/' }, 'Home')),
           li({}, r(NavLink, { to: '/about' }, 'About')),
