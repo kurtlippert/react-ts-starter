@@ -1,6 +1,3 @@
-
-// tslint:disable:no-submodule-imports
-
 // react
 import * as React from 'react'
 const r = React.createElement
@@ -11,13 +8,12 @@ import { BrowserRouter as Router, NavLink } from 'react-router-dom'
 // redux
 import { connect, Provider } from 'react-redux'
 import { applyMiddleware, createStore, Store} from 'redux'
-import { createEpicMiddleware, Epic } from 'redux-observable'
+import { createEpicMiddleware, Epic, ofType } from 'redux-observable'
 
 // rxjs
 import { Observable } from 'rxjs'
-import 'rxjs/add/operator/map'
-import 'rxjs/add/operator/mergeMap'
-import { ajax } from 'rxjs/observable/dom/ajax'
+import { mergeMap, map, catchError } from 'rxjs/operators'
+import { ajax } from 'rxjs/ajax'
 
 // typestyle
 import { style } from 'typestyle'
@@ -29,9 +25,9 @@ import { withRouter } from 'react-router'
 // model
 interface User {
   id: number,
-  first_name: string,
-  last_name: string,
-  avatar: string,
+  login: string,
+  url: string,
+  avatar_url: string,
 }
 
 interface State {
@@ -52,28 +48,22 @@ const fetchUsersFulfilled = (payload: User[]): Action => ({
   type: 'FETCH_USERS_FULFILLED',
 })
 
-// update
-// epics
-// https://reqres.in/api/users
-interface UserResponse {
-  data: User[]
-}
-
 interface EpicDependencies {
-  getJSON: (url: string) => Observable<UserResponse>
+  getJSON: (url: string) => Observable<User[]>
 }
 
 export const fetchUsersEpic:
-  Epic<Action, Store<State>, EpicDependencies> =
-  (action$, _, { getJSON }) => {
-    return action$.ofType('FETCH_USERS')
-      .mergeMap(() =>
-        getJSON('https://reqres.in/api/users?page=1')
-          .map(({ data }) =>
-            fetchUsersFulfilled(data),
-          ),
+  Epic<Action, Action, void, EpicDependencies> =
+  (action$, _, { getJSON }) =>
+    action$.pipe(
+      ofType('FETCH_USERS'),
+      mergeMap(() =>
+        getJSON('https://api.github.com/users?since=1&per_page=5').pipe(
+          map(response => fetchUsersFulfilled(response)),
+          catchError((error) => console.log(`error: ${error}`) as never)
+        )
       )
-  }
+    )
 
 // reducers
 const users = (state: State, action: Action): State => {
@@ -103,19 +93,19 @@ const _about: React.SFC<{ state: State }> = ({ state }) =>
       thead({},
         tr({},
           th({}, '#'),
-          th({}, 'First Name'),
-          th({}, 'Last Name'),
+          th({}, 'Username'),
+          th({}, 'Url'),
           th({}, 'Avatar'),
         ),
       ),
       tbody({},
-        (state.users as any).map((user: User, index: number) =>
+        (state.users).map((user: User, index: number) =>
           tr({ key: user.id },
             td({}, index),
-            td({}, user.first_name),
-            td({}, user.last_name),
+            td({}, user.login),
+            td({}, user.url),
             td({},
-              img({ src: user.avatar }),
+              img({ src: user.avatar_url, height: '32', width: '32' }),
             ),
           ),
         ),
@@ -172,7 +162,7 @@ const Root: React.SFC<RootProps> = ({ store }) =>
     ),
   )
 
-const epicMiddleware = createEpicMiddleware(fetchUsersEpic, {
+const epicMiddleware = createEpicMiddleware({
   dependencies: {
     getJSON: ajax.getJSON,
   },
@@ -183,6 +173,8 @@ const initialState: State = {
 }
 
 const store = createStore(users, initialState, applyMiddleware(epicMiddleware))
+
+epicMiddleware.run(fetchUsersEpic)
 
 // render
 render(
