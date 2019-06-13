@@ -2,7 +2,7 @@
 import * as React from 'react'
 const r = React.createElement
 import { render } from 'react-dom'
-import { br, div, hr, img, li, tbody, td, th, thead, tr, ul } from 'react-dom-factories'
+import { br, button, div, hr, img, input, label, li, tbody, td, th, thead, tr, ul } from 'react-dom-factories'
 import { BrowserRouter as Router, NavLink } from 'react-router-dom'
 
 // redux
@@ -12,8 +12,10 @@ import { createEpicMiddleware, Epic, ofType } from 'redux-observable'
 
 // rxjs
 import { Observable } from 'rxjs'
-import { mergeMap, map, catchError } from 'rxjs/operators'
+// tslint:disable-next-line:no-submodule-imports
 import { ajax } from 'rxjs/ajax'
+// tslint:disable-next-line:no-submodule-imports
+import { catchError, map, mergeMap } from 'rxjs/operators'
 
 // typestyle
 // import { style } from 'typestyle'
@@ -31,47 +33,64 @@ interface User {
 }
 
 interface State {
+  skip: number,
+  take: number,
+  search: string,
   users: User[]
 }
 
 // action
 type Action =
-  | { type: 'FETCH_USERS' }
-  | { payload: User[], type: 'FETCH_USERS_FULFILLED' }
+  | { type: 'FETCH_USERS', skip: number, take: number, search: string }
+  | { type: 'FETCH_USERS_FULFILLED', skip: number, take: number, search: string, users: User[] }
 
-const fetchUsers = (): Action => ({
+const fetchUsers = (search: string, skip: number, take: number): Action => ({
+  search,
+  skip,
+  take,
   type: 'FETCH_USERS',
 })
 
-const fetchUsersFulfilled = (payload: User[]): Action => ({
-  payload,
+const fetchUsersFulfilled = (search: string, skip: number, take: number, users: User[]): Action => ({
+  search,
+  skip,
+  take,
   type: 'FETCH_USERS_FULFILLED',
+  users,
 })
 
 interface EpicDependencies {
-  getJSON: (url: string) => Observable<User[]>
+  getJSON: (url: string) => Observable<User[] | { items: User[] }>
 }
 
 export const fetchUsersEpic:
-  Epic<Action, Action, void, EpicDependencies> =
+  Epic<Action, Action, State, EpicDependencies> =
   (action$, _, { getJSON }) =>
     action$.pipe(
       ofType('FETCH_USERS'),
-      mergeMap(() =>
-        getJSON('https://api.github.com/users?since=1&per_page=5').pipe(
-          map(response => fetchUsersFulfilled(response)),
-          catchError((error) => console.log(`error: ${error}`) as never)
+      mergeMap((action) => {
+        const { search, skip, take } = action
+        const query = search === '' ? 'users?' : `search/users?q=${search}&`
+        return getJSON(`https://api.github.com/${query}since=${skip + 1}&per_page=${take}`).pipe(
+          map(response =>
+            fetchUsersFulfilled(search, skip, take,
+              search === '' ? response as User[] : (response as { items: User[] }).items)),
+          // tslint:disable-next-line:no-console
+          catchError((error) => console.log(`error: ${error}`) as never),
         )
-      )
+      }),
     )
 
 // reducers
-const users = (state: State, action: Action): State => {
+const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case 'FETCH_USERS_FULFILLED':
       return {
         ...state,
-        users: action.payload,
+        search: action.search,
+        skip: action.skip,
+        take: action.take,
+        users: action.users,
       }
     default:
       return state
@@ -89,6 +108,14 @@ const home = () => {
 const _about: React.SFC<{ state: State }> = ({ state }) =>
   div({},
     div({}, 'about page'),
+    br(),
+    div({ className: 'form-group' },
+      label({}, 'Filter'),
+      input({
+        className: 'form-control',
+        onChange: (e) => store.dispatch(fetchUsers(e.target.value, state.skip, state.take)),
+      }),
+    ),
     r(Table, { responsive: true },
       thead({},
         tr({},
@@ -111,6 +138,14 @@ const _about: React.SFC<{ state: State }> = ({ state }) =>
         ),
       ),
     ),
+    button({
+      className: `btn btn-link ${state.skip < 5 ? 'disabled' : ''}`,
+      onClick: () => store.dispatch(fetchUsers(state.search, state.skip - state.take, state.take)),
+    }, 'Previous'),
+    button({
+      className: `btn btn-link ${state.users.length < 5 ? 'disabled' : ''}`,
+      onClick: () => store.dispatch(fetchUsers(state.search, state.skip + state.take, state.take)),
+    }, 'Next'),
   )
 
 const about = connect(
@@ -162,17 +197,20 @@ const Root: React.SFC<RootProps> = ({ store }) =>
     ),
   )
 
-const epicMiddleware = createEpicMiddleware({
+const epicMiddleware = createEpicMiddleware<Action, Action, State, EpicDependencies>({
   dependencies: {
     getJSON: ajax.getJSON,
   },
 })
 
 const initialState: State = {
+  search: '',
+  skip: 0,
+  take: 5,
   users: [],
 }
 
-const store = createStore(users, initialState, applyMiddleware(epicMiddleware))
+const store: any = createStore(reducer, initialState, applyMiddleware(epicMiddleware))
 
 epicMiddleware.run(fetchUsersEpic)
 
@@ -182,4 +220,4 @@ render(
   document.getElementById('root'),
 )
 
-store.dispatch(fetchUsers())
+store.dispatch(fetchUsers(initialState.search, initialState.skip, initialState.take))

@@ -1,43 +1,37 @@
 {
-  "name": "ip-web",
-  "description": "Industrial Process web front-end",
+  "name": "react-ts-starter",
+  "description": "React / Redux / TypeScript / Parcel starter code",
   "version": "1.0.0",
   "license": "MIT",
-  "author": "Medicago LLC.",
+  "author": "Kurt Lippert",
   "main": "src/index.ts",
   "scripts": {
-    "start": "parcel index.html",
-    "build": "dotenv webpack --display-error-details",
-    "stats": "webpack --profile --json > stats.json"
+    "start": "parcel index.html"
   },
   "dependencies": {
-    "csstips": "0.3.0",
-    "html-webpack-plugin": "3.2.0",
-    "react": "16.7.0",
-    "react-bootstrap": "0.32.4",
-    "react-dom": "16.7.0",
+    "react": "16.8.6",
+    "react-bootstrap": "1.0.0-beta.9",
+    "react-dom": "16.8.6",
     "react-dom-factories": "1.0.2",
-    "react-redux": "6.0.0",
-    "react-router-dom": "4.3.1",
+    "react-redux": "7.1.0",
+    "react-router-dom": "5.0.1",
     "redux": "4.0.1",
-    "redux-observable": "1.0.0",
-    "rxjs": "6.3.3",
-    "ts-loader": "5.3.3",
-    "typestyle": "2.0.1"
+    "redux-observable": "1.1.0",
+    "rxjs": "6.5.2",
+    "ts-loader": "6.0.2"
   },
   "devDependencies": {
-    "@types/node": "10.12.18",
-    "@types/react": "16.7.18",
-    "@types/react-bootstrap": "0.32.15",
-    "@types/react-dom": "16.0.11",
+    "@types/node": "12.0.8",
+    "@types/react": "16.8.19",
+    "@types/react-bootstrap": "0.32.17",
+    "@types/react-dom": "16.8.4",
     "@types/react-dom-factories": "1.0.2",
-    "@types/react-redux": "6.0.12",
-    "@types/react-router-dom": "4.3.1",
-    "dotenv-cli": "1.4.0",
-    "parcel-bundler": "^1.11.0",
-    "ts-node": "7.0.1",
-    "tsconfig-paths": "3.7.0",
-    "tslint": "5.12.1",
-    "typescript": "3.2.2"
+    "@types/react-redux": "7.1.0",
+    "@types/react-router-dom": "4.3.3",
+    "dotenv-cli": "2.0.0",
+    "ts-node": "8.2.0",
+    "tsconfig-paths": "3.8.0",
+    "tslint": "5.17.0",
+    "typescript": "^3.5.1"
   }
 }

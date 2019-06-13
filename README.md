@@ -1,4 +1,20 @@
 # react-ts-starter  
+**Install nodejs**  
+Install NodeJS as per your system  
+`brew install node`  
+`choco install node`  
+`sudo (apt|dnf|etc.) install (node|nodejs|etc.)`
+
+**Install yarn or npm**  
+`brew install (npm|yarn)`  
+...  
+etc.
+
+**Install parcel-bundler through npm/yarn**  
+`npm install -g parcel-bundler`  
+`yarn global add parcel-bundler`  
+
+**Running the app**  
 `yarn(npm) start` to run  
 `yarn(npm) build` to build  
   
@@ -9,4 +25,3 @@
 **Notes**
 * `tsconfig` may have extraneous items (libs for example)
 * `tslint` is a tad opinionated and can be modified per liking
-* You'll need to export env var `TS_NODE_PROJECT=tsconfig.webpack.json`
